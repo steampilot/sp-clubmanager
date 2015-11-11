@@ -1,7 +1,7 @@
-[PROJECT_NAME]
+SP-ClubManager
 ================
 
-[PROJECT_DESCRIPTION]
+Simple small CakePHP application to manage a small sports club.
 
 Releasing
 ---------
@@ -16,7 +16,7 @@ See the [installation guide](INSTALLATION.md).
 Development
 -----------
 
-- Checkout the [the project Subversion repository](http://devsrv1/svn/customer-name_project-name/trunk/).
+- Checkout the [the GitHub project repository](https://github.com/steampilot/sp-clubmanager).
 - Open the system console
 - Change to [application installation folder]/
 - Run the Composer installation (including development dependencies) by running
@@ -42,7 +42,7 @@ Coding Standard
 ---------------
 
 This project adheres to the
-[ORCA Services Coding Standard](http://devsrv1/dokuwiki/entwicklung/standards/coding_standard)
+[ORCA Services Coding Standard](http://www.orca-services.ch)
 where possible.
 
 Check the coding standard compliance by running
@@ -53,9 +53,9 @@ composer check-codestyle
 Issue Tracking
 --------------
 
-Issue tracking is done in [JIRA](https://orca-services.atlassian.net/projects/PROJECT_NAME).
+Issue tracking is done in [GitHub](https://github.com/steampilot/sp-clubmanager/issues).
 
 Continuous Integration
 ----------------------
 
-The continuous integration is done by [Jenkins](http://devsrv1:8080/job/PROJECT_NAME/).
+The continuous integration is done by [TravisCI](https://travis-ci.org/steampilot/sp-clubmanager).

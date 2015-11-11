@@ -1,0 +1,9 @@
+# CakePHP 2
+
+/app/tmp/*
+/vendors/*
+/data/*
+/plugin/*
+/vendor
+
+
