@@ -1,0 +1,24 @@
+<phpunit
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="http://schema.phpunit.de/4.0/phpunit.xsd"
+        forceCoversAnnotation="false"
+        verbose="true">
+    <filter>
+        <whitelist processUncoveredFilesFromWhitelist="true">
+            <directory suffix=".php">./Console/Command/</directory>
+            <directory suffix=".php">./Controller/</directory>
+            <directory suffix=".php">./Lib/</directory>
+            <directory suffix=".php">./Model/</directory>
+            <directory suffix=".php">./View/Helper/</directory>
+            <exclude>
+                <file >./Model/Behavior/WhoDidItBehavior.php</file>
+                <file >./Model/Datasource/ArraySource.php</file>
+                <file >./Model/Datasource/Database/Mysql.php</file>
+                <file >./Model/Datasource/Database/Sqlserver.php</file>
+            </exclude>
+        </whitelist>
+    </filter>
+    <logging>
+        <log type="coverage-html" target="../webroot/coverage" charset="UTF-8"/>
+    </logging>
+</phpunit>

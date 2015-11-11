@@ -1,0 +1,56 @@
+{
+    "name": "steampilot/sp-clubmanager",
+    "description": "Steampilot Club Manager",
+    "license": "MIT",
+    "type": "project",
+    "authors": [
+        {
+            "name": "Steampilot",
+            "email": "dev@steampilot.ch",
+            "homepage": "http://dev.steampilot.ch"
+        },
+        {
+            "name": "ORCA Services AG",
+            "email": "development@orca-services.ch",
+            "homepage": "http://www.orca-services.ch"
+        }
+    ],
+    "homepage": "http://dev.steampilot.ch",
+    "support": {
+        "issues": "http://dev.steampilot.ch",
+        "email": "dev@steampilot.ch",
+        "source": "http://github/steampilot/sp-clubmanager/"
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "require": {
+        "php": ">=5.4.0",
+        "cakephp/cakephp": "2.7.3",
+        "cakephp/debug_kit": "^2.2.5",
+        "cakedc/migrations": "^2.3",
+        "ceeram/clear_cache": "^1.1",
+        "dereuromark/cakephp-databaselog": "^1.0",
+        "ravage84/cakephp-multi-column-uniqueness": "^0.3.0",
+        "ravage84/cakephp-fake-seeder": "^0.1",
+        "twitter/bootstrap": "dev-master",
+        "slywalker/twitter_bootstrap": "dev-master"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "3.7.38",
+        "orca-services/phpcs-standard": "2014-12-18",
+        "phploc/phploc": "^2.1.1",
+        "pdepend/pdepend": "^2.0.6",
+        "phpmd/phpmd": "^2.2.2",
+        "sebastian/phpcpd": "^2.0.2"
+    },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "http://vpn.orca-services.ch:8090/svn/orca-services_phpcs-standard"
+        }
+    ],
+    "scripts": {
+        "test": "php vendor/cakephp/cakephp/lib/Cake/Console/cake.php test app AllAppTests --stderr --working app",
+        "check-codestyle": "phpcs -p --standard=vendor/orca-services/phpcs-standard/OrcaServices --runtime-set ignore_errors_on_exit 1 --runtime-set ignore_warnings_on_exit 1 app"
+    }
+}

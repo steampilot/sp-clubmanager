@@ -1,0 +1,24 @@
+# ApiGen configuration
+
+source:
+    - app
+
+exclude:
+    - Model/Datasource
+    - Test
+
+groups: packages
+
+title: "PROJECT_NAME"
+
+templateTheme: bootstrap
+
+# Options
+accessLevels: [public, protected]
+sourceCode: true
+download: false
+php: false
+debug: true
+internal: true
+deprecated: true
+todo: true

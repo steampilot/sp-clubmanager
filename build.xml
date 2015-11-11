@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="Steampilot Club Manager Build Script" default="build">
+
+    <condition property="script_ext" value=".bat" else="">
+        <os family="windows"/>
+    </condition>
+
+    <condition property="ds" value="\" else="/">
+        <os family="windows"/>
+    </condition>
+
+    <property name="app_dir" value="${basedir}${ds}app"/>
+    <property name="data_dir" value="${basedir}${ds}data"/>
+    <property name="vendor_dir" value="${basedir}${ds}vendor"/>
+    <property name="build_dir" value="${basedir}${ds}build"/>
+    <property name="apidoc_dir" value="${build_dir}${ds}apidoc"/>
+    <property name="coverage_dir" value="${build_dir}${ds}coverage"/>
+    <property name="logs_dir" value="${build_dir}${ds}logs"/>
+    <property name="pdepend_dir" value="${build_dir}${ds}pdepend"/>
+    <property name="release_dir" value="${build_dir}${ds}release"/>
+
+    <target name="build"
+            depends="prepare, lint, phploc, pdepend ,phpmd, phpcs, phpcpd, phpunit, pack-artifact, apidoc"/>
+
+    <target name="fast-build" description="Build without metrics and API documentation"
+            depends="prepare, lint, phpunit, pack-artifact"/>
+
+    <target name="cleanup" description="Cleanup build artifacts">
+        <delete dir="${build_dir}"/>
+    </target>
+
+    <target name="prepare" depends="cleanup" description="Prepare for build">
+        <mkdir dir="${build_dir}"/>
+        <mkdir dir="${logs_dir}"/>
+        <mkdir dir="${pdepend_dir}"/>
+        <mkdir dir="${release_dir}/"/>
+        <mkdir dir="${apidoc_dir}"/>
+        <mkdir dir="${coverage_dir}"/>
+
+        <!-- Install dependencies incl. development tools -->
+        <exec executable="composer${script_ext}">
+            <arg value="install" />
+            <arg value="--optimize-autoloader" />
+            <arg value="--working-dir" />
+            <arg value="${basedir}" />
+        </exec>
+    </target>
+
+    <target name="create-schema" description="Create the schema">
+        <exec executable="php">
+            <arg value="${app_dir}/Console/cake.php" />
+            <arg value="schema" />
+            <arg value="create" />
+            <arg value="--yes" />
+            <arg value="--working" />
+            <arg value="${app_dir}/" />
+        </exec>
+    </target>
+
+    <target name="lint" description="Perform syntax check of sourcecode files">
+        <apply executable="php" failonerror="true">
+            <arg value="-l" />
+
+            <fileset dir="${app_dir}/">
+                <include name="**/*.php" />
+                <include name="**/*.ctp" />
+                <modified />
+            </fileset>
+        </apply>
+    </target>
+
+    <target name="phploc" description="Measure project size using PHPLOC">
+        <exec executable="${vendor_dir}/bin/phploc${script_ext}">
+            <arg value="--names" />
+            <arg value="*.php,*.ctp" />
+            <arg value="--log-csv" />
+            <arg value="${logs_dir}/phploc.csv" />
+            <arg path="${app_dir}" />
+        </exec>
+    </target>
+
+    <target name="pdepend" description="Calculate software metrics using PHP_Depend">
+        <exec executable="${vendor_dir}/bin/pdepend${script_ext}">
+            <arg value="--jdepend-xml=${logs_dir}/jdepend.xml" />
+            <arg value="--jdepend-chart=${pdepend_dir}/dependencies.svg" />
+            <arg value="--overview-pyramid=${pdepend_dir}/overview-pyramid.svg" />
+            <arg path="${app_dir}" />
+        </exec>
+    </target>
+
+    <target name="phpmd" description="Perform project mess detection using PHPMD creating a log file for the continuous integration server">
+        <exec executable="${vendor_dir}/bin/phpmd${script_ext}">
+            <arg path="${app_dir}" />
+            <arg value="xml" />
+            <arg value="phpmd.xml" />
+            <arg value="--reportfile" />
+            <arg value="${logs_dir}/pmd.xml" />
+            <arg value="--exclude" />
+            <arg value="${app_dir}${ds}Config${ds}Migration,${app_dir}${ds}Config${ds}Schema,${app_dir}${ds}Model${ds}Datasource${ds}Database${ds}Sqlserver.php,${app_dir}${ds}Model${ds}Datasource${ds}Database${ds}Mysql.php,${app_dir}${ds}Model${ds}Datasource${ds}ArraySource.php" />
+        </exec>
+    </target>
+
+    <target name="phpcs" description="Find coding standard violations using PHP_CodeSniffer creating a log file for the continuous integration server">
+        <exec executable="${vendor_dir}/bin/phpcs${script_ext}">
+            <arg value="-p" />
+            <arg value="--report=checkstyle" />
+            <arg value="--report-file=${logs_dir}/checkstyle.xml" />
+            <arg value="--standard=${vendor_dir}/orca-services/phpcs-standard/OrcaServices/" />
+            <!-- Using ${ds} for Windows does not work here, consider using pathconvert -->
+            <arg value="--ignore=*.js,${app_dir}/Model/Datasource/Database/Sqlserver.php,${app_dir}/Model/Datasource/Database/Mysql.php,${app_dir}/Model/Datasource/ArraySource.php" />
+            <arg path="${app_dir}" />
+        </exec>
+    </target>
+
+    <target name="phpcpd" description="Find duplicate code using PHPCPD">
+        <exec executable="${vendor_dir}/bin/phpcpd${script_ext}">
+            <arg value="--log-pmd" />
+            <arg value="${logs_dir}/pmd-cpd.xml" />
+            <arg value="--exclude" />
+            <arg value="Config/Migration" />
+            <arg value="--exclude" />
+            <arg value="Config/Schema" />
+            <arg path="${app_dir}" />
+        </exec>
+    </target>
+
+    <target name="phpunit" description="Run CakePHP tests with PHPUnit and generate Coverage Reports">
+        <exec executable="php" failonerror="true">
+            <arg value="${app_dir}/Console/cake.php" />
+            <arg value="test" />
+            <arg value="app" />
+            <arg value="AllAppTests" />
+            <arg value="--stderr" />
+            <arg value="--log-junit" />
+            <arg value="${logs_dir}/junit.xml" />
+            <arg value="--coverage-html" />
+            <arg value="${coverage_dir}/" />
+            <arg value="--coverage-clover" />
+            <arg value="${logs_dir}/clover.xml" />
+            <arg value="--configuration" />
+            <arg value="${basedir}/phpunit.xml" />
+            <arg value="--working" />
+            <arg value="${app_dir}/" />
+        </exec>
+    </target>
+
+    <target name="apidoc" description="Generate API documentation using apigen (installed separately">
+        <!-- Destination folder must be empty -->
+        <delete dir="${apidoc_dir}"/>
+        <mkdir dir="${apidoc_dir}"/>
+
+        <exec executable="apigen${script_ext}">
+            <arg value="generate" />
+            <arg value="--config" />
+            <arg value="${basedir}/apigen.neon" />
+            <arg value="--destination" />
+            <arg value="${apidoc_dir}" />
+        </exec>
+    </target>
+
+    <target name="version_number" depends="prepare-artifact" description="Extract version number">
+        <condition property="version_number" value="LATEST">
+            <equals arg1="${SVN_BRANCH}" arg2="trunk"/>
+        </condition>
+        <loadfile property="version_number" srcFile="${release_dir}/app/Config/VERSION.txt" encoding="UTF-8">
+            <filterchain>
+                <striplinebreaks/>
+                <replacestring from=" " to="_"/>
+            </filterchain>
+        </loadfile>
+    </target>
+
+    <target name="prepare-artifact" description="Copy application to build folder and install dependencies">
+        <delete dir="${release_dir}/"/>
+        <mkdir dir="${release_dir}/"/>
+
+        <copy todir="${release_dir}">
+            <fileset dir="${basedir}">
+                <exclude name=".git/**"/>
+                <exclude name=".svn/**"/>
+                <exclude name=".idea/**"/>
+                <exclude name="cache.properties"/>
+                <exclude name="apigen.neon"/>
+                <exclude name=".editorconfig"/>
+                <exclude name="phpmd.xml"/>
+                <exclude name="phpunit.xml"/>
+                <exclude name="build.xml"/>
+                <exclude name="app/Config/datastore.php"/>
+                <exclude name="build/**"/>
+                <exclude name="data/**"/>
+                <exclude name="nbproject/**"/>
+                <exclude name="vendor/**"/>
+                <exclude name="Plugin/ClearCache/**"/>
+                <exclude name="Plugin/DatabaseLog/**"/>
+                <exclude name="Plugin/DebugKit/**"/>
+                <exclude name="Plugin/FakeSeeder/**"/>
+                <exclude name="Plugin/Migrations/**"/>
+                <exclude name="Plugin/MultiColumnUniqueness/**"/>
+                <exclude name="Plugin/Search/**"/>
+                <exclude name="Plugin/Upload/**"/>
+                <exclude name="webroot/files/**"/>
+                <exclude name="webroot/apidoc/**"/>
+                <exclude name="webroot/coverage/**"/>
+                <exclude name="webroot/test.php"/>
+                <exclude name="**/empty"/>
+                <exclude name="**.phar"/>
+                <exclude name="app/Test/**"/>
+                <exclude name="app/phpunit-html-coverage.xml"/>
+            </fileset>
+        </copy>
+        <!-- Create empty folders that need to exist -->
+        <mkdir dir="${release_dir}/webroot/files/product/front_image_filename"/>
+        <mkdir dir="${release_dir}/webroot/files/product/rear_image_filename"/>
+
+        <!-- Install require-only dependencies -->
+        <exec executable="composer${script_ext}">
+            <arg value="install" />
+            <arg value="--no-dev" />
+            <arg value="--optimize-autoloader" />
+            <arg value="--ignore-platform-reqs" />
+            <arg value="--prefer-dist" />
+            <arg value="--working-dir" />
+            <arg value="${release_dir}" />
+        </exec>
+    </target>
+
+    <target name="pack-artifact" depends="prepare-artifact, version_number" description="Pack release into a zip file">
+        <zip basedir="${release_dir}" destfile="${build_dir}/cate_${version_number}.zip"/>
+    </target>
+
+    <target name="update-dev" description="Update development environment">
+        <exec executable="svn">
+            <arg value="update" />
+        </exec>
+        <exec executable="composer${script_ext}">
+            <arg value="selfupdate" />
+        </exec>
+        <exec executable="composer${script_ext}">
+            <arg value="install" />
+            <arg value="--optimize-autoloader" />
+            <arg value="--working-dir" />
+            <arg value="${basedir}" />
+        </exec>
+        <exec executable="php">
+            <arg value="${app_dir}/Console/cake.php" />
+            <arg value="Migrations.migration" />
+            <arg value="run" />
+            <arg value="all" />
+            <arg value="--working" />
+            <arg value="${app_dir}/" />
+        </exec>
+        <exec executable="php">
+            <arg value="${app_dir}/Console/cake.php" />
+            <arg value="test" />
+            <arg value="app" />
+            <arg value="AllAppTests" />
+            <arg value="--stderr" />
+            <arg value="--working" />
+            <arg value="${app_dir}/" />
+        </exec>
+    </target>
+
+</project>

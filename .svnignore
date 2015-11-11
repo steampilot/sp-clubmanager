@@ -1,0 +1,8 @@
+# The following properties must be set as svn:ignore manually!
+vendor
+data
+*.phar
+.idea/*
+Plugin/*
+build/*
+webroot\files/*
